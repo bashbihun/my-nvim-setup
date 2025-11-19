@@ -22,7 +22,7 @@ keymap("n", "<leader>A", ":lua CreateNewFolder()<CR>", { desc = "Create new fold
 keymap("n", "<leader>e", ":NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
 
 -- Terminal
-keymap("n", "<leader>c", ":lua OpenTerminal()<CR>", { desc = "Open terminal" })
+keymap("n", "<leader>t", ":lua OpenTerminal()<CR>", { desc = "Open terminal" })
 keymap("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- Project Creation

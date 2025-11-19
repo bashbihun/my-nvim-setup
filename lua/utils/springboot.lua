@@ -42,16 +42,240 @@ function BuildSpringBoot()
   end
 end
 
--- Fungsi untuk test Spring Boot
+-- Global variable untuk test output mode
+vim.g.test_output_mode = "split" -- "split" atau "inline"
+
+-- Fungsi untuk toggle test output mode
+function ToggleTestOutputMode()
+  if vim.g.test_output_mode == "split" then
+    vim.g.test_output_mode = "inline"
+    print("📺 Test output: INLINE (fullscreen)")
+  else
+    vim.g.test_output_mode = "split"
+    print("📺 Test output: SPLIT (bottom window)")
+  end
+end
+
+-- Fungsi untuk run test dengan output di split terminal
+function RunTestWithOutput(command)
+  -- Close existing test terminal if any
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    local buf_name = vim.api.nvim_buf_get_name(buf)
+    if buf_name:match("term://.*test") then
+      vim.api.nvim_win_close(win, true)
+    end
+  end
+  
+  -- Create horizontal split at bottom
+  vim.cmd("botright split")
+  vim.cmd("resize 15")
+  
+  -- Open terminal and run command
+  local term_buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_win_set_buf(0, term_buf)
+  
+  -- Run command in terminal
+  vim.fn.termopen(command, {
+    on_exit = function(_, exit_code)
+      if exit_code == 0 then
+        print("✅ Tests passed!")
+      else
+        print("❌ Tests failed! Check output above.")
+      end
+    end
+  })
+  
+  -- Start in insert mode to see output
+  vim.cmd("startinsert")
+  
+  -- Return to previous window after command completes
+  vim.defer_fn(function()
+    vim.cmd("wincmd p")
+  end, 500)
+end
+
+-- Fungsi untuk run test dengan quickfix window
+function RunTestWithQuickfix(command)
+  print("🧪 Running tests...")
+  
+  -- Run command and capture output
+  local output = vim.fn.system(command)
+  local exit_code = vim.v.shell_error
+  
+  -- Parse output for errors
+  local lines = vim.split(output, "\n")
+  local qf_list = {}
+  
+  for i, line in ipairs(lines) do
+    -- Parse Maven/Gradle test failures
+    if line:match("FAILED") or line:match("ERROR") or line:match("FAILURE") then
+      table.insert(qf_list, {
+        text = line,
+        lnum = i,
+        type = "E"
+      })
+    elseif line:match("Tests run:") then
+      table.insert(qf_list, {
+        text = line,
+        lnum = i,
+        type = "I"
+      })
+    end
+  end
+  
+  -- Show in quickfix
+  if #qf_list > 0 then
+    vim.fn.setqflist(qf_list)
+    vim.cmd("copen")
+  end
+  
+  -- Show summary
+  if exit_code == 0 then
+    print("✅ All tests passed!")
+  else
+    print("❌ Some tests failed! Check quickfix (:copen)")
+  end
+  
+  -- Print full output
+  print(output)
+end
+
+-- Fungsi untuk test Spring Boot (all tests)
 function TestSpringBoot()
+  local command
   if vim.fn.filereadable("pom.xml") == 1 then
-    print("🧪 Testing Spring Boot with Maven...")
-    vim.cmd("!mvn test")
+    command = "mvn test"
   elseif vim.fn.filereadable("build.gradle") == 1 or vim.fn.filereadable("build.gradle.kts") == 1 then
-    print("🧪 Testing Spring Boot with Gradle...")
-    vim.cmd("!./gradlew test")
+    command = "./gradlew test"
   else
     print("❌ No build tool detected!")
+    return
+  end
+  
+  if vim.g.test_output_mode == "split" then
+    RunTestWithOutput(command)
+  else
+    vim.cmd("!" .. command)
+  end
+end
+
+-- Fungsi untuk run single test class
+function RunTestClass()
+  local file = vim.fn.expand("%:p")
+  local filename = vim.fn.expand("%:t:r")
+  
+  -- Check if this is a test file
+  if not filename:match("Test$") and not filename:match("Tests$") then
+    print("❌ Not a test file! Test files should end with 'Test' or 'Tests'")
+    return
+  end
+  
+  -- Get package name from file
+  local package = ""
+  for line in io.lines(file) do
+    local pkg = line:match("^package%s+([%w%.]+)")
+    if pkg then
+      package = pkg
+      break
+    end
+  end
+  
+  local full_class = package .. "." .. filename
+  local command
+  
+  if vim.fn.filereadable("pom.xml") == 1 then
+    command = "mvn test -Dtest=" .. full_class
+  elseif vim.fn.filereadable("build.gradle") == 1 or vim.fn.filereadable("build.gradle.kts") == 1 then
+    command = "./gradlew test --tests " .. full_class
+  else
+    print("❌ No build tool detected!")
+    return
+  end
+  
+  print("🧪 Running test class: " .. full_class)
+  
+  if vim.g.test_output_mode == "split" then
+    RunTestWithOutput(command)
+  else
+    vim.cmd("!" .. command)
+  end
+end
+
+-- Fungsi untuk run single test method
+function RunTestMethod()
+  local file = vim.fn.expand("%:p")
+  local filename = vim.fn.expand("%:t:r")
+  
+  -- Check if this is a test file
+  if not filename:match("Test$") and not filename:match("Tests$") then
+    print("❌ Not a test file!")
+    return
+  end
+  
+  -- Get current line and find test method name
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
+  
+  -- Search upward for @Test annotation and method name
+  local method_name = nil
+  local has_test_annotation = false
+  
+  for i = cursor_line, 1, -1 do
+    local line = lines[i]
+    
+    -- Check for @Test annotation
+    if line:match("@Test") or line:match("@ParameterizedTest") or line:match("@RepeatedTest") then
+      has_test_annotation = true
+    end
+    
+    -- Find method name
+    local method = line:match("void%s+([%w_]+)%s*%(") or line:match("fun%s+([%w_`]+)%s*%(")
+    if method and has_test_annotation then
+      -- Remove backticks from Kotlin method names
+      method_name = method:gsub("`", "")
+      break
+    end
+    
+    -- Stop if we hit another method or class declaration
+    if line:match("^%s*class%s+") or (line:match("^%s*public") and not has_test_annotation) then
+      break
+    end
+  end
+  
+  if not method_name then
+    print("❌ No test method found! Make sure cursor is inside a @Test method")
+    return
+  end
+  
+  -- Get package name
+  local package = ""
+  for line in io.lines(file) do
+    local pkg = line:match("^package%s+([%w%.]+)")
+    if pkg then
+      package = pkg
+      break
+    end
+  end
+  
+  local full_class = package .. "." .. filename
+  local command
+  
+  if vim.fn.filereadable("pom.xml") == 1 then
+    command = "mvn test -Dtest=" .. full_class .. "#" .. method_name
+  elseif vim.fn.filereadable("build.gradle") == 1 or vim.fn.filereadable("build.gradle.kts") == 1 then
+    command = "./gradlew test --tests " .. full_class .. "." .. method_name
+  else
+    print("❌ No build tool detected!")
+    return
+  end
+  
+  print("🧪 Running test method: " .. method_name)
+  
+  if vim.g.test_output_mode == "split" then
+    RunTestWithOutput(command)
+  else
+    vim.cmd("!" .. command)
   end
 end
 
@@ -385,6 +609,7 @@ vim.api.nvim_create_autocmd("FileType", {
       
       local filetype = vim.bo.filetype
       
+      -- Run application
       if filetype == "java" then
         vim.keymap.set("n", "<leader>sr", ":lua RunSpringBootJava()<CR>", { buffer = true, desc = "Spring Boot Run" })
       elseif filetype == "kotlin" then
@@ -392,8 +617,22 @@ vim.api.nvim_create_autocmd("FileType", {
       end
       
       vim.keymap.set("n", "<leader>sb", ":lua BuildSpringBoot()<CR>", { buffer = true, desc = "Spring Boot Build" })
-      vim.keymap.set("n", "<leader>st", ":lua TestSpringBoot()<CR>", { buffer = true, desc = "Spring Boot Test" })
       vim.keymap.set("n", "<leader>sd", ":lua RunSpringBootDev()<CR>", { buffer = true, desc = "Spring Boot Dev" })
+      
+      -- Test keybindings (check if in test file)
+      local filename = vim.fn.expand("%:t")
+      if filename:match("Test%.java$") or filename:match("Test%.kt$") or 
+         filename:match("Tests%.java$") or filename:match("Tests%.kt$") then
+        
+        vim.keymap.set("n", "<leader>st", ":lua TestSpringBoot()<CR>", { buffer = true, desc = "Run All Tests" })
+        vim.keymap.set("n", "<leader>sc", ":lua RunTestClass()<CR>", { buffer = true, desc = "Run Test Class" })
+        vim.keymap.set("n", "<leader>sm", ":lua RunTestMethod()<CR>", { buffer = true, desc = "Run Test Method" })
+        vim.keymap.set("n", "<leader>so", ":lua ToggleTestOutputMode()<CR>", { buffer = true, desc = "Toggle Test Output" })
+        
+        print("🧪 Test shortcuts: <leader>st (all), <leader>sc (class), <leader>sm (method), <leader>so (toggle output)")
+      else
+        vim.keymap.set("n", "<leader>st", ":lua TestSpringBoot()<CR>", { buffer = true, desc = "Spring Boot Test" })
+      end
     end
   end
 })

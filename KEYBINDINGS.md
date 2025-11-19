@@ -112,8 +112,15 @@ All keyboard shortcuts for Neovim Java/Kotlin/Spring Boot setup.
 |-----|--------|-------------|
 | `Space + sr` | Spring Boot run | Run Spring Boot application |
 | `Space + sb` | Spring Boot build | Build Spring Boot JAR |
-| `Space + st` | Spring Boot test | Run Spring Boot tests |
 | `Space + sd` | Spring Boot dev | Run with DevTools (hot reload) |
+
+**Testing (in test files):**
+| Key | Action | Description |
+|-----|--------|-------------|
+| `Space + st` | Run all tests | Run all tests in project |
+| `Space + sc` | Run test class | Run all tests in current class |
+| `Space + sm` | Run test method | Run test method at cursor |
+| `Space + so` | Toggle output | Switch split/inline output mode |
 
 **Active in:** Spring Boot projects (with pom.xml or build.gradle)
 
@@ -220,7 +227,6 @@ Space + sd  → Dev mode (hot reload)
 Space + e   → File explorer
 Ctrl + p    → Find files
 Space + a   → New file
-Space + A -> New Folder
 Space + np  → New project
 Space + t   → Terminal (horizontal/vertical)
 ```
