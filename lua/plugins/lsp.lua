@@ -27,7 +27,8 @@ return {
     require("mason-lspconfig").setup({
       ensure_installed = { 
         "jdtls",                    -- Java LSP
-        "kotlin_language_server"    -- Kotlin LSP
+        "kotlin_language_server",   -- Kotlin LSP
+        "gopls",                    -- Go LSP
       },
       automatic_installation = true,
     })

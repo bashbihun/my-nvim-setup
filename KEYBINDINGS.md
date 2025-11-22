@@ -106,6 +106,30 @@ All keyboard shortcuts for Neovim Java/Kotlin/Spring Boot setup.
 
 ---
 
+## 🐹 Golang Commands
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `F5` | Quick run | Run Go program |
+| `Space + gr` | Go run | Run current file |
+| `Space + gb` | Go build | Build to bin/ folder |
+| `Space + gt` | Go test | Run all tests |
+| `Space + gR` | Go run (race) | Run with race detector |
+| `Space + gF` | Go format | Format code (gofmt) |
+| `Space + gT` | Go mod tidy | Update dependencies |
+
+**Testing (in _test.go files):**
+| Key | Action | Description |
+|-----|--------|-------------|
+| `Space + gt` | Test all | Run all tests |
+| `Space + gf` | Test file | Run tests in current file |
+| `Space + gm` | Test function | Run test at cursor |
+| `Space + go` | Toggle output | Split/inline output |
+
+**Active in:** `.go` files
+
+---
+
 ## 🍃 Spring Boot Commands
 
 | Key | Action | Description |

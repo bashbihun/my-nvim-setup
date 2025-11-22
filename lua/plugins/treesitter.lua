@@ -11,6 +11,9 @@ return {
       ensure_installed = {
         "java",
         "kotlin",
+        "go",
+        "gomod",
+        "gowork",
         "lua",
         "vim",
         "vimdoc",

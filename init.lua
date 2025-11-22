@@ -14,8 +14,8 @@ require("plugins")
 -- Load utilities
 require("utils.java")
 require("utils.kotlin")
+require("utils.golang")
 require("utils.projects")
 require("utils.springboot")
-
 
 print("✅ Neovim loaded successfully!")
