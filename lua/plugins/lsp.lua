@@ -37,6 +37,39 @@ return {
       automatic_installation = true,
     })
 
+
+-- Capabilities dengan auto-import support
+local capabilities = require("cmp_nvim_lsp").default_capabilities()
+
+-- Apply capabilities ke gopls
+vim.lsp.config.gopls = {
+  cmd = { "gopls" },
+  filetypes = { "go", "gomod", "gowork", "gotmpl" },
+  root_markers = { "go.work", "go.mod", ".git" },
+  capabilities = capabilities,
+  settings = {
+    gopls = {
+      completeUnimported = true,
+      usePlaceholders = true,
+      analyses = { unusedparams = true, shadow = true },
+      staticcheck = true,
+      gofumpt = true,
+    },
+  },
+}
+
+-- Apply capabilities ke ts_ls
+vim.lsp.config.ts_ls = {
+  cmd = { "typescript-language-server", "--stdio" },
+  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+  root_markers = { "package.json", "tsconfig.json", "jsconfig.json", ".git" },
+  capabilities = capabilities,
+  settings = {
+    typescript = { suggest = { autoImports = true } },
+    javascript = { suggest = { autoImports = true } },
+  },
+}
+
     -- ============================================
     -- LSP Keybindings
     -- ============================================
