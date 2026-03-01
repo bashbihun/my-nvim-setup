@@ -15,6 +15,7 @@ require("plugins")
 require("utils.java")
 require("utils.kotlin")
 require("utils.golang")
+require("utils.javascript")
 require("utils.projects")
 require("utils.springboot")
 

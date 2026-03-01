@@ -5,26 +5,65 @@
 
 -- Fungsi untuk membuat file baru
 function CreateNewFile()
-  vim.ui.input({ prompt = "New file name: " }, function(input)
-    if input and input ~= "" then
-      local filepath = vim.fn.getcwd() .. "/" .. input
-      local dir = vim.fn.fnamemodify(filepath, ":h")
+  local ok, nvim_tree = pcall(require, "nvim-tree.api")
+  local base_path
 
+  if ok then
+    local node = nvim_tree.tree.get_node_under_cursor()
+    if node then
+      if node.type == "directory" then
+        base_path = node.absolute_path
+      else
+        base_path = vim.fn.fnamemodify(node.absolute_path, ":h")
+      end
+    end
+  end
+
+  if not base_path then
+    base_path = vim.fn.getcwd()
+  end
+
+  vim.ui.input({ prompt = "New file (" .. base_path .. "): " }, function(input)
+    if input and input ~= "" then
+      local filepath = base_path .. "/" .. input
+      local dir = vim.fn.fnamemodify(filepath, ":h")
       vim.fn.mkdir(dir, "p")
       vim.cmd("edit " .. filepath)
-      print("Created file: " .. filepath)
+      print("✅ Created file: " .. filepath)
     end
   end)
 end
 
 -- Fungsi untuk membuat folder baru
 function CreateNewFolder()
-  vim.ui.input({ prompt = "New folder name: " }, function(input)
-    if input and input ~= "" then
-      local folderpath = vim.fn.getcwd() .. "/" .. input
+  -- Coba ambil path dari node nvim-tree yang sedang dikursor
+  local ok, nvim_tree = pcall(require, "nvim-tree.api")
+  local base_path
 
+  if ok then
+    local node = nvim_tree.tree.get_node_under_cursor()
+    if node then
+      if node.type == "directory" then
+        base_path = node.absolute_path
+      else
+        -- Kalau cursor di file, ambil direktori parentnya
+        base_path = vim.fn.fnamemodify(node.absolute_path, ":h")
+      end
+    end
+  end
+
+  -- Fallback ke cwd kalau nvim-tree tidak aktif
+  if not base_path then
+    base_path = vim.fn.getcwd()
+  end
+
+  vim.ui.input({ prompt = "New folder (" .. base_path .. "): " }, function(input)
+    if input and input ~= "" then
+      local folderpath = base_path .. "/" .. input
       vim.fn.mkdir(folderpath, "p")
-      print("Created folder: " .. folderpath)
+      print("✅ Created folder: " .. folderpath)
+      -- Refresh nvim-tree
+      pcall(function() require("nvim-tree.api").tree.reload() end)
     end
   end)
 end
@@ -218,13 +257,17 @@ end
 -- Fungsi untuk show project creation menu
 function ShowProjectMenu()
   vim.ui.select(
-    { 
-      "Java Project", 
+    {
+      "Java Project",
       "Kotlin Project",
       "Go Project",
-      "Spring Boot Java", 
-      "Spring Boot Kotlin", 
-      "Cancel" 
+      "Node.js + TypeScript",
+      "React (Vite)",
+      "Vue",
+      "Svelte",
+      "Spring Boot Java",
+      "Spring Boot Kotlin",
+      "Cancel"
     },
     { prompt = "Create new project:" },
     function(choice)
@@ -234,6 +277,14 @@ function ShowProjectMenu()
         CreateKotlinProject()
       elseif choice == "Go Project" then
         CreateGoProject()
+      elseif choice == "Node.js + TypeScript" then
+        CreateNodeProject()
+      elseif choice == "React (Vite)" then
+        CreateReactProject()
+      elseif choice == "Vue" then
+        CreateVueProject()
+      elseif choice == "Svelte" then
+        CreateSvelteProject()
       elseif choice == "Spring Boot Java" then
         CreateSpringBootJavaProject()
       elseif choice == "Spring Boot Kotlin" then
