@@ -58,17 +58,73 @@ vim.lsp.config.gopls = {
   },
 }
 
--- Apply capabilities ke ts_ls
-vim.lsp.config.ts_ls = {
-  cmd = { "typescript-language-server", "--stdio" },
-  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
-  root_markers = { "package.json", "tsconfig.json", "jsconfig.json", ".git" },
-  capabilities = capabilities,
+
+        -- Kotlin LSP
+vim.lsp.config.kotlin_language_server = {
+  cmd = { "kotlin-language-server" },
+  filetypes = { "kotlin" },
+  root_markers = {
+    "settings.gradle",
+    "settings.gradle.kts",
+    "build.gradle",
+    "build.gradle.kts",
+    ".git"
+  },
+  capabilities = capabilities,  -- tambah ini
   settings = {
-    typescript = { suggest = { autoImports = true } },
-    javascript = { suggest = { autoImports = true } },
+    kotlin = {
+      compiler = { jvm = { target = "11" } },
+      completion = {
+        snippets = { enabled = true },
+      },
+    }
+  },
+  init_options = {
+    storagePath = vim.fn.stdpath("data") .. "/kotlin-ls",
   },
 }
+
+-- Java LSP (jdtls)
+vim.lsp.config.jdtls = {
+  cmd = { "jdtls" },
+  filetypes = { "java" },
+  root_markers = {
+    ".git",
+    "pom.xml",
+    "build.gradle",
+    "build.gradle.kts",
+    "mvnw",
+    "gradlew"
+  },
+  capabilities = capabilities,  -- tambah ini
+  settings = {
+    java = {
+      signatureHelp = { enabled = true },
+      completion = {
+        enabled = true,
+        importOrder = { "java", "javax", "org", "com" },
+        filteredTypes = {
+          "com.sun.*", "io.micrometer.shaded.*",
+          "java.awt.*", "jdk.*", "sun.*",
+        },
+      },
+      sources = {
+        organizeImports = {
+          starThreshold = 9999,
+          staticStarThreshold = 9999,
+        },
+      },
+      autobuild = { enabled = true },
+      codeGeneration = {
+        toString = {
+          template = "${object.className}{${member.name()}=${member.value}, ${otherMembers}}"
+        },
+        useBlocks = true,
+      },
+    }
+  }
+}
+
 
     -- ============================================
     -- LSP Keybindings
@@ -233,6 +289,7 @@ vim.lsp.config.ts_ls = {
       cmd = { "typescript-language-server", "--stdio" },
       filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
       root_markers = { "package.json", "tsconfig.json", "jsconfig.json", ".git" },
+            capabilities = capabilities,
       settings = {
         typescript = {
           inlayHints = {
@@ -271,6 +328,7 @@ vim.lsp.config.ts_ls = {
       cmd = { "vue-language-server", "--stdio" },
       filetypes = { "vue" },
       root_markers = { "package.json", ".git" },
+            capabilities = capabilities,
     }
 
     vim.api.nvim_create_autocmd("FileType", {
@@ -285,6 +343,7 @@ vim.lsp.config.ts_ls = {
       cmd = { "svelteserver", "--stdio" },
       filetypes = { "svelte" },
       root_markers = { "package.json", "svelte.config.js", ".git" },
+            capabilities = capabilities,
     }
 
     vim.api.nvim_create_autocmd("FileType", {
@@ -299,6 +358,7 @@ vim.lsp.config.ts_ls = {
       cmd = { "vscode-eslint-language-server", "--stdio" },
       filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte" },
       root_markers = { ".eslintrc", ".eslintrc.js", ".eslintrc.json", "package.json" },
+            capabilities = capabilities,
       settings = {
         validate = "on",
         packageManager = "npm",
