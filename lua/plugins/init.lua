@@ -24,4 +24,6 @@ require("lazy").setup({
   require("plugins.telescope"),
   require("plugins.git"),
   require("plugins.ui"),
+  require("plugins.neotest"),
 })
+

@@ -63,7 +63,7 @@ keymap("n", "<leader>gB", ":Telescope git_branches<CR>", { desc = "Git branches"
 
 -- Spring Boot (aktif di Spring Boot project)
 -- <leader>sr - Spring Boot Run
--- <leader>sb - Spring Boot Build  
+-- <leader>sb - Spring Boot Build
 -- <leader>st - Spring Boot Test
 -- <leader>sd - Spring Boot Dev Mode
 
@@ -88,3 +88,12 @@ keymap("n", "<C-Right>", ":vertical resize +2<CR>", { desc = "Increase window wi
 
 -- Clear search highlight
 keymap("n", "<Esc>", ":noh<CR>", { desc = "Clear search highlight" })
+
+-- Neotest
+keymap("n", "<leader>tt", ":lua require('neotest').run.run()<CR>",                          { desc = "Run nearest test" })
+keymap("n", "<leader>tf", ":lua require('neotest').run.run(vim.fn.expand('%'))<CR>",        { desc = "Run current file tests" })
+keymap("n", "<leader>ta", ":lua require('neotest').run.run(vim.fn.getcwd())<CR>",           { desc = "Run all tests" })
+keymap("n", "<leader>ts", ":lua require('neotest').summary.toggle()<CR>",                   { desc = "Toggle test summary" })
+keymap("n", "<leader>to", ":lua require('neotest').output.open({ enter = true })<CR>",      { desc = "Open test output" })
+keymap("n", "<leader>tS", ":lua require('neotest').run.stop()<CR>",                         { desc = "Stop test" })
+keymap("n", "<leader>td", ":lua require('neotest').run.run({ strategy = 'dap' })<CR>",      { desc = "Debug nearest test" })
