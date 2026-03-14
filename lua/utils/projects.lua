@@ -254,6 +254,40 @@ Kotlin project created with Neovim
   end)
 end
 
+function TestPicker()
+  local neotest = require("neotest")
+  vim.ui.select(
+    {
+      "Run nearest test (method di cursor)",
+      "Run current file",
+      "Run all tests",
+      "Run last test",
+      "Show test summary",
+      "Show test output",
+      "Stop test",
+    },
+    { prompt = "🧪 Run test:" },
+    function(choice)
+      if choice == "Run nearest test (method di cursor)" then
+        neotest.run.run()
+      elseif choice == "Run current file" then
+        neotest.run.run(vim.fn.expand("%"))
+      elseif choice == "Run all tests" then
+        neotest.run.run(vim.fn.getcwd())
+      elseif choice == "Run last test" then
+        neotest.run.run_last()
+      elseif choice == "Show test summary" then
+        neotest.summary.toggle()
+      elseif choice == "Show test output" then
+        neotest.output.open({ enter = true })
+      elseif choice == "Stop test" then
+        neotest.run.stop()
+      end
+    end
+  )
+end
+
+
 -- Fungsi untuk show project creation menu
 function ShowProjectMenu()
   vim.ui.select(
